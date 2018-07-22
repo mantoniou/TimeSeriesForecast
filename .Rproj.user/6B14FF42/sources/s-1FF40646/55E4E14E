@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1532148119030.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4133831116",
+    "id" : "55E4E14E",
+    "lastKnownWriteTime" : 1532255055,
+    "last_content_update" : 1532255055647,
+    "path" : "~/OneDrive/Projects/R/All_Projects/2018_07_TimeSeriesForecast/Initial Analysis.Rmd",
+    "project_path" : "Initial Analysis.Rmd",
+    "properties" : {
+        "chunk_output_type" : "inline",
+        "cursorPosition" : "73,14",
+        "docOutlineVisible" : "1",
+        "scrollLine" : "61",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

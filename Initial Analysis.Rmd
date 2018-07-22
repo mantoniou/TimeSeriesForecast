@@ -1,0 +1,81 @@
+---
+title: "Testing"
+output: html_notebook
+---
+
+# EXPLORE EUROSTAT LIBRARY 
+
+Find data on eurostat package
+
+```{r}
+library(tidyverse)
+library(rvest)
+library(eurostat)
+
+
+# Get Eurostat data listing
+toc <- get_eurostat_toc()
+```
+
+
+List all folders
+
+```{r}
+# Check the first items
+library(knitr)
+kable(head(toc, n = 20))
+```
+
+
+Search and list folders
+
+```{r}
+# info about passengers
+kable(head(search_eurostat("passenger transport")))
+```
+
+
+## _Download data - Modal split of passenger transport
+
+```{r}
+# For the original data, see
+# http://ec.europa.eu/eurostat/tgm/table.do?tab=table&init=1&plugin=1&language=en&pcode=ts id <- search_eurostat("Modal split of passenger transport",
+id <- search_eurostat("Modal split of passenger transport",
+type = "table")$code[1]
+dat <- get_eurostat(id, time_format = "num")
+# Label the data
+dat <- label_eurostat(dat)
+
+```
+
+
+## _Download data - Consumers indicators
+
+```{r}
+# For the original data, see
+# http://ec.europa.eu/eurostat/tgm/table.do?tab=table&init=1&plugin=1&language=en&pcode=ts id <- search_eurostat("Modal split of passenger transport",
+
+dat <- get_eurostat("ei_bsco_m", time_format = "num")
+dat <- label_eurostat(dat)
+
+```
+
+
+
+## _Download data - GDP
+
+```{r}
+# For the original data, see
+dat <- get_eurostat("namq_10_gdp", time_format = "num")
+dat <- label_eurostat(dat)
+
+```
+
+Choose filters
+- Current prices, million euro
+- Unadjusted data (i.e. neither seasonally adjusted nor calendar adjusted data)
+- Gross domestic product at market prices
+
+
+
+

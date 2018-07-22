@@ -1,0 +1,80 @@
+################################################################################
+# https://cran.r-project.org/web/packages/eurostat/vignettes/eurostat_tutorial.pdf
+#
+################################################################################
+
+
+library(eurostat)
+library(tidyverse)
+
+
+# Get dictionary of all Eurostat listings ######################################
+toc <- get_eurostat_toc()
+
+# Get data for General government gross debt - quarterly data ##################
+dat <- get_eurostat(id = "ei_nagt_q_r2", time_format = "num")
+dat <- label_eurostat(dat)
+
+greece <-  filter(dat, geo == "Greece", indic == "Government consolidated gross debt",
+                  unit == "Percentage of gross domestic product (GDP)") %>% 
+  mutate(time2 = as.character(time)) %>% 
+  separate(time2, c("year", "quarter")) %>% View
+
+
+ggplot(greece)+
+  geom_point(aes(year, values))
+
+
+
+# Get data for Consumers - monthly data - monthly data #########################
+
+dat <- get_eurostat(id = "ei_bsco_m", time_format = "num")
+dat <- label_eurostat(dat)
+
+
+
+# various
+query <- search_eurostat("road", type = "table")
+query[1:3, 1:2]
+
+# Download Table
+dat <- get_eurostat(id = "tsdtr420", time_format = "num")
+
+
+dat <- label_eurostat(dat)
+
+
+# 1
+t1 <- get_eurostat("tsdtr420", filters =
+                     list(geo = c("UK", "FR", "PL", "ES", "PT")))
+ggplot(t1, aes(x = time, y = values, color = geo,
+               group = geo, shape = geo)) +
+  geom_point(size = 2) +
+  geom_line() + theme_bw() +
+  labs(title="Road accidents", x = "Year", y = "Victims")
+
+# 2
+t2 <- t1 %>% filter(time == "2014-01-01")
+ggplot(t2, aes(geo, values, fill=geo)) +
+  geom_bar(stat = "identity") + theme_bw() +
+  theme(legend.position = "none")+
+  labs(title="Road accidents in 2014", x="", y="Victims")
+
+
+# 3
+fertility <- get_eurostat("demo_r_frate3") %>%
+  filter(time == "2014-01-01") %>%
+  mutate(cat = cut_to_classes(values, n=7, decimals=1))
+mapdata <- merge_eurostat_geodata(fertility, resolution = "20")
+
+
+# 4 
+ggplot(mapdata, aes(x = long, y = lat, group = group))+
+  geom_polygon(aes(fill=cat), color="grey", size = .1)+
+  scale_fill_brewer(palette = "RdYlBu") +
+  labs(title="Fertility rate, by NUTS-3 regions, 2014",
+       subtitle="Avg. number of live births per woman",
+       fill="Total fertility rate(%)") + theme_light()+
+  coord_map(xlim=c(-12,44), ylim=c(35,67))
+
+
