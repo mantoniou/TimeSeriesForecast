@@ -62,7 +62,7 @@ dat <- label_eurostat(dat)
 
 
 
-## _Download data - GDP
+## _Download data - GDP 1
 
 ```{r}
 # For the original data, see
@@ -78,4 +78,65 @@ Choose filters
 
 
 
+
+
+# ANALYZE DATA
+
+## _GDP 
+
+```{r}
+# For the original data, see
+dat <- get_eurostat("namq_10_gdp", time_format = "num")
+dat <- label_eurostat(dat)
+
+
+# Per quarter
+dat %>% 
+  filter(unit == "Current prices, million euro",
+         s_adj == "Unadjusted data (i.e. neither seasonally adjusted nor calendar adjusted data)",
+         na_item == "Gross domestic product at market prices") %>% 
+  group_by(geo, str_sub(time, 1, 4), str_sub(as.character(time), 5, 8)) %>% 
+  summarise(gdp = sum(values)) %>% View()
+
+
+selected_geo <- c( "Greece", "Spain", "Cyprus", "Italy", "Portugal", "Ireland", 
+                   "Euro area (19 countries)")
+
+# Per quarter
+dat %>% 
+  mutate(geo = as.character(geo)) %>% 
+  filter(unit == "Current prices, million euro",
+         s_adj == "Unadjusted data (i.e. neither seasonally adjusted nor calendar adjusted data)",
+         na_item == "Gross domestic product at market prices",
+         geo %in% selected_geo) %>% 
+  group_by(geo, date = str_sub(time, 1, 4)) %>% 
+  summarise(gdp = sum(values)) %>% 
+  mutate(date = as.Date(paste(date, "-01-01", sep = ""))) %>% 
+  filter(date < '2018-01-01') %>% 
+  ggplot() +
+  geom_line(aes(date, gdp)) +
+  facet_wrap(~geo, scales = "free" )
+
+```
+
+
+# Consumers Indicators
+
+```{r}
+# For the original data, see
+# http://ec.europa.eu/eurostat/tgm/table.do?tab=table&init=1&plugin=1&language=en&pcode=ts id <- search_eurostat("Modal split of passenger transport",
+
+dat <- get_eurostat("ei_bsco_m", time_format = "num")
+dat <- label_eurostat(dat)
+
+dat %>%
+  filter(s_adj == "Unadjusted data (i.e. neither seasonally adjusted nor calendar adjusted data)") %>% 
+  group_by(geo, indic, date = str_sub(time, 1, 4)) %>% 
+  summarise(Avg = mean(values)) %>% 
+  mutate(date = as.Date(paste(date, "-01-01", sep = ""))) %>% 
+  ggplot() +
+  geom_line(aes(date, Avg, color = indic)) +
+  facet_wrap(~geo)
+
+```
 
