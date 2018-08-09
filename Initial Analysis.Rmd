@@ -140,3 +140,100 @@ dat %>%
 
 ```
 
+
+# FORECASTING 
+
+## Create time series object
+
+```{r}
+library(forecast)
+
+
+# For the original data, see
+dat <- get_eurostat("namq_10_gdp", time_format = "num")
+dat <- label_eurostat(dat)
+
+
+selected_geo <- "Euro area (19 countries)"
+
+# Per quarter
+dat <- 
+dat %>% 
+  mutate(geo = as.character(geo)) %>% 
+  filter(unit == "Current prices, million euro",
+         s_adj == "Unadjusted data (i.e. neither seasonally adjusted nor calendar adjusted data)",
+         na_item == "Gross domestic product at market prices",
+         geo %in% selected_geo) %>% 
+  arrange(time)
+
+
+
+gdp_ts <- ts(dat[, 6], start = c(1995, 1), frequency = 4)
+
+
+```
+
+
+## Simple Time series plot
+
+```{r}
+autoplot(gdp_ts, facets = TRUE)+
+  labs(title = "Quarterly GDP for EU 19 with linear trend",
+       y = "Quarterly GDP (€)",
+       x = "year") +
+  geom_smooth(method = "lm")
+
+autoplot(gdp_ts, facets = TRUE)+
+  labs(title = "Quarterly GDP for EU 19 with lowess trend",
+       y = "Quarterly GDP (€)",
+       x = "year") +
+  geom_smooth(method = "loess")
+
+
+```
+
+
+
+## Seasonal plot
+
+```{r}
+ggseasonplot(gdp_ts) +
+  labs(title = "Monthly sales per year",
+       y = "Sales (€)")
+```
+
+
+## Seasonal polar coordinate season plot
+
+```{r}
+
+ggseasonplot(gdp_ts, polar = TRUE)+
+  labs(title = "Monthly sales per year",
+       y = "Sales (€)")
+
+```
+
+
+## Seasonal plot per month
+
+```{r}
+ggsubseriesplot(gdp_ts)
+```
+
+
+
+## Lag plot of sales data
+
+```{r}
+gglagplot(gdp_ts)
+```
+
+
+## ACF Plot of the sales 
+
+```{r}
+ggAcf(gdp_ts)
+```
+
+
+
