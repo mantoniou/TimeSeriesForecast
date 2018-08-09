@@ -228,6 +228,7 @@ ggsubseriesplot(gdp_ts)
 gglagplot(gdp_ts)
 ```
 
+* strongest lag 4 & 8 (1, 2 years)
 
 ## ACF Plot of the sales 
 
@@ -236,4 +237,123 @@ ggAcf(gdp_ts)
 ```
 
 
+## _Difference plot
 
+```{r}
+
+autoplot(diff(gdp_ts))
+
+```
+
+## _ACF plot
+
+```{r}
+ggAcf(diff(gdp_ts))
+```
+
+
+## _Ljung-Box test
+
+```{r}
+Box.test(diff(gdp_ts), lag = 4, type = "Ljung")
+Box.test(diff(gdp_ts), lag = 1, type = "Ljung")
+
+```
+
+* All Ljung-Box tests have very small p-values, so there is strong evidence to 
+reject null hypothesis, that the time-series is not white noise. It definetely 
+has seasonality..
+
+## SEASONAL NAIVE MODEL
+
+```{r}
+
+autoplot(snaive(gdp_ts, 3))
+
+```
+
+### Check residuals
+
+```{r}
+snaive(gdp_ts, 4) %>% 
+  checkresiduals()
+  
+```
+
+* Could be useful... Only 1,2, 3 lags are significant
+* Residuals look like white noise
+
+
+### Model accuracy
+
+```{r}
+# Create two training sets
+train1 <- window(gdp_ts, end = c(2016, 4))
+
+# Create forecasts
+fc1 <- snaive(train1, h = 4)
+
+accuracy(fc1, gdp_ts)
+
+```
+
+## ARIMA MODEL - SEASONAL (FINAL)
+
+
+```{r}
+
+# Fit a seasonal ARIMA model with lambda = 0 - box cox transformation
+fit <- auto.arima(train1, lambda = 0)
+
+# Summarize the fitted model
+summary(fit)
+
+```
+
+
+### ACF 
+
+```{r}
+ggAcf(train1) +
+  labs(title = "Autocorrelation funtion plot for sales time series")
+```
+
+
+### Plot residuals 
+
+```{r}
+checkresiduals(fit)
+
+```
+
+
+
+### Test accuracy
+
+```{r}
+accuracy(forecast(fit, h = 4), gdp_ts)
+
+```
+
+
+### Check accuracy
+
+```{r}
+forecast(fit)
+
+window(gdp_ts, start = c(2017, 1))
+
+```
+
+
+### Plot forecasts
+
+```{r}
+
+fit %>% 
+  forecast(h = 4) %>% 
+  autoplot() +
+  labs(title = "Forecasting of GDP",
+       y = "GDP (€)")
+
+```
