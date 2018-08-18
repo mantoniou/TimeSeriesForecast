@@ -126,12 +126,9 @@ $(document).ready(function () {
 In particular, the common European union quarterly GDP (Gross domestic product) dataset used.</p>
 <p>Gross domestic (GDP) is a monetary measure of the market value of all the final goods and services produced in a period (quarterly or yearly) of time. Nominal GDP estimates are commonly used to determine the economic performance of a whole country or region, and to make international comparisons.</p>
 <p>The <a href="https://cran.r-project.org/web/packages/eurostat/index.html">Eurostat package</a> used to obtain the dataset and <a href="https://cran.r-project.org/web/packages/forecast/index.html">Forecast package</a> for the ARIMA modelling.</p>
-<p>Data preparation was a very important part of the analysis. The first step was to exclude all songs, where the text field of lyrics was less than 10 characters long.<br />
-Then, after looking at the lyrics text field, it seems that there were a lot of non-English songs. The decision was to include only English language songs in the final dataset. So, by using the <strong>cld3</strong> library, the origin of the songs was detected &amp; added to the dataset. The language detection wasn’t perfect, as it misclassified a few songs. But because of the large original dataset, i decided to use it and remove all non-English songs from the dataset.<br />
-Finally all songs that music genre was either missing or unknown were removed. Also all songs with invalid year input (less than 1970) were removed.</p>
-<p>More details about these steps can be found, in the actual code, at the end of the article.</p>
+<p>More details about the ETL steps can be found, in the actual code, at the link in the end of the article.</p>
 <div id="exploratory-analysis" class="section level1">
-<h1>EXPLORATORY ANALYSIS</h1>
+<h1>Exploratory Analysis</h1>
 <p>Exploratory analysis is very important, especially when forecasting. We try to discover patterns in the time-series such as<br />
 - <strong>Trend</strong> A pattern involving long-term increase OR decrease in the data.<br />
 - <strong>Seasonality</strong> A period pattern exists due to the calendar (e.g. quarter, month, week day)<br />
@@ -179,7 +176,7 @@ Finally all songs that music genre was either missing or unknown were removed. A
 </ul>
 </div>
 <div id="modelling" class="section level1">
-<h1>MODELLING</h1>
+<h1>Modelling</h1>
 <p>There are various ways to model our data… ARIMA is a ……</p>
 <pre><code>## Series: train1 
 ## ARIMA(2,1,1)(0,1,1)[4] 

@@ -22,6 +22,8 @@ The [Eurostat package](https://cran.r-project.org/web/packages/eurostat/index.ht
 used to obtain the dataset and [Forecast package](https://cran.r-project.org/web/packages/forecast/index.html) 
 for the ARIMA modelling. 
 
+More details about the ETL steps can be found, in the actual code, at the link 
+in the end of the article.
 
 ```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
 
@@ -34,14 +36,6 @@ library(ggthemes)
 
 ```
 
-
-
-Data preparation was a very important part of the analysis. The first 
-step was to exclude all songs, where the text field of lyrics was less than 10 
-characters long.  
-
-More details about these steps can be found, in the actual code, at the end of 
-the article.
 
 
 ```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
@@ -81,7 +75,7 @@ gdp_ts <- ts(dat[, 6], start = c(1995, 1), frequency = 4)
 ```
 
 
-# EXPLORATORY ANALYSIS
+# Exploratory Analysis
 
 Exploratory analysis is very important, especially when forecasting. We try to 
 discover patterns in the time-series such as  
@@ -180,7 +174,7 @@ reject null hypothesis, that the time-series is not white noise. It definetely
 has seasonality..
 
 
-# MODELLING
+# Modelling
 
 There are various ways to model our data... 
 ARIMA is a ...... 
