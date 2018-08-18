@@ -1,0 +1,237 @@
+---
+title: "Forecasting European Union GDP using Eurostat data"
+description: "[Aug 26, 2018] Forecasting European Union GDP (Gross domestic product) using Eurostat data & ARIMA modelling"
+output: html_document
+---
+
+
+This analysis uses a dataset from Eurostat database. Eurostat is the statistical
+office of the European Union situated in Luxembourg. Its mission is to provide 
+high quality statistics for Europe. Eurostat offers a whole range of important 
+and interesting data that governments, businesses, the education sector, 
+journalists and the public can use for their work and daily life.  
+In particular, the common European union quarterly GDP (Gross domestic product) 
+dataset used.  
+
+Gross domestic (GDP) is a monetary measure of the market value of all the final
+goods and services produced in a period (quarterly or yearly) of time. Nominal 
+GDP estimates are commonly used to determine the economic performance of a whole
+country or region, and to make international comparisons. 
+
+The [Eurostat package](https://cran.r-project.org/web/packages/eurostat/index.html) 
+used to obtain the dataset and [Forecast package](https://cran.r-project.org/web/packages/forecast/index.html) 
+for the ARIMA modelling. 
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+# Libraries
+library(tidyverse)
+library(rvest)
+library(eurostat)
+library(ggthemes)
+
+
+```
+
+
+
+Data preparation was a very important part of the analysis. The first 
+step was to exclude all songs, where the text field of lyrics was less than 10 
+characters long.  
+
+More details about these steps can be found, in the actual code, at the end of 
+the article.
+
+
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+# Download the dataset & label the data
+dat <- get_eurostat("namq_10_gdp", time_format = "num")
+dat <- label_eurostat(dat)
+
+# Save the data
+saveRDS(dat, file = "./data/dat.RDS")
+```
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+
+# Load the dataset
+dat <- readRDS("./data/dat.RDS")
+
+library(forecast)
+
+selected_geo <- "Euro area (19 countries)"
+
+# Filter the quarterly EU19 GDP dataset
+dat <- 
+dat %>% 
+  mutate(geo = as.character(geo)) %>% 
+  filter(unit == "Current prices, million euro",
+         s_adj == "Unadjusted data (i.e. neither seasonally adjusted nor calendar adjusted data)",
+         na_item == "Gross domestic product at market prices",
+         geo %in% selected_geo) %>% 
+  arrange(time)
+
+
+# Create the time series object
+gdp_ts <- ts(dat[, 6], start = c(1995, 1), frequency = 4)
+
+```
+
+
+# EXPLORATORY ANALYSIS
+
+Exploratory analysis is very important, especially when forecasting. We try to 
+discover patterns in the time-series such as  
+- **Trend** A pattern involving long-term increase OR decrease in the data.  
+- **Seasonality**  A period pattern exists due to the calendar (e.g. quarter,
+month, week day)  
+- **Cyclicity** A pattern exists where the data exhibits rises and falls that 
+are not of fixed period (duration usually of at least 2 years)
+
+below there is a simple plot of the GDP time series
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+# Simple time series plot
+autoplot(gdp_ts, facets = TRUE)+
+  labs(title = "Quarterly GDP for EU 19 with lowess trend",
+       y = "Quarterly GDP (€)",
+       x = "year") +
+  geom_smooth(method = "loess")+
+  theme_fivethirtyeight()
+
+
+```
+
+* In general we can say there a positive trend
+* There is seasonality 
+* No cyclicity 
+
+
+Below there is a seasonal plot ....
+fdafafafafafafafafafafafafa
+afafafsafafafasffafafafafaffaf
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+## Seasonal plot
+ggseasonplot(gdp_ts) +
+  labs(title = "Seasonal GDP plot for EU19",
+       y = "GDP (€)")+
+  theme_fivethirtyeight()
+```
+
+* We can confirm that there is a seasonality. It seems that 4th quarter is always 
+the higher, while the 1st is always the lowest. The 2nd & 3rd are about the same. 
+
+Below there is the lag plot. 
+- A few words about lags 
+ddddddddddddd
+ddddddddddddddddd
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+## Lag plot of time series
+gglagplot(gdp_ts)+
+  theme_fivethirtyeight()
+```
+
+* strongest lag 4  (1 year). There is a mild at lag 8 
+
+in the autocorellation plot below .......
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# Autocorellation plot
+ggAcf(gdp_ts)+
+  theme_fivethirtyeight()
+```
+
+* Explain the autocorellation plot
+
+Below there is a difference plot. 
+And a 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# Difference plot
+autoplot(diff(gdp_ts))+
+  theme_fivethirtyeight()
+
+# ACF of difference plot
+ggAcf(diff(gdp_ts))+
+  theme_fivethirtyeight()
+```
+
+* Explain the plot .......
+
+Ljung-Box ............
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# Ljung-Box test
+Box.test(diff(gdp_ts), lag = 4, type = "Ljung")
+Box.test(diff(gdp_ts), lag = 1, type = "Ljung")
+
+```
+
+* All Ljung-Box tests have very small p-values, so there is strong evidence to 
+reject null hypothesis, that the time-series is not white noise. It definetely 
+has seasonality..
+
+
+# MODELLING
+
+There are various ways to model our data... 
+ARIMA is a ...... 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+# Create the trainin set
+train1 <- window(gdp_ts, end = c(2016, 4))
+
+# Fit a seasonal ARIMA model with lambda = 0 - box cox transformation
+fit <- auto.arima(train1, lambda = 0)
+
+# Summarize the fitted model
+summary(fit)
+
+```
+
+Below there are some plots about the residuals from the model. 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# Plot residuals 
+checkresiduals(fit)
+
+```
+
+* Explain the residuals.....
+
+Now, the ultimate test for any prediction model is the accuracy. below 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# Test accuracy
+accuracy(forecast(fit, h = 4), gdp_ts)
+
+```
+
+* RMSE ........................
+* MAPE is ........................................
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+# Plot forecasts
+fit %>% 
+  forecast(h = 4) %>% 
+  autoplot() +
+  labs(title = "Forecasting of GDP",
+       y = "GDP (€)")+
+  theme_fivethirtyeight()
+
+```
+
+[Full R code](https://github.com/mantoniou/Blog/blob/master/content/post/2018-06-text-analytics-song-lyrics.Rmd)
+
