@@ -1,5 +1,5 @@
 ---
-title: "Forecasting European Union GDP using Eurostat data"
+title: "Forecasting Eurozone GDP using Eurostat data"
 description: "[Aug 26, 2018] Forecasting European Union GDP (Gross domestic product) using Eurostat data & ARIMA modelling"
 output: html_document
 ---
@@ -10,8 +10,10 @@ office of the European Union situated in Luxembourg. Its mission is to provide
 high quality statistics for Europe. Eurostat offers a whole range of important 
 and interesting data that governments, businesses, the education sector, 
 journalists and the public can use for their work and daily life.  
-In particular, the common European union quarterly GDP (Gross domestic product) 
-dataset used.  
+In particular, the eurozone (EU 19) quarterly GDP (Gross domestic product) 
+dataset used. The eurozone consists of 19 countries: Austria, Belgium, Cyprus, 
+Estonia, Finland, France, Germany, Greece, Ireland, Italy, Latvia, Lithuania, 
+Luxembourg, Malta, the Netherlands, Portugal, Slovakia, Slovenia, and Spain. 
 
 Gross domestic (GDP) is a monetary measure of the market value of all the final
 goods and services produced in a period (quarterly or yearly) of time. Nominal 
@@ -77,123 +79,113 @@ gdp_ts <- ts(dat[, 6], start = c(1995, 1), frequency = 4)
 
 # Exploratory Analysis
 
-Exploratory analysis is very important, especially when forecasting. We try to 
-discover patterns in the time-series such as  
-- **Trend** A pattern involving long-term increase OR decrease in the data.  
+During exploratory analysis we try to discover patterns in the time-series such as:  
+- **Trend** A pattern involving long-term increase or decrease in the data.  
 - **Seasonality**  A period pattern exists due to the calendar (e.g. quarter,
 month, week day)  
 - **Cyclicity** A pattern exists where the data exhibits rises and falls that 
-are not of fixed period (duration usually of at least 2 years)
+are not of fixed period (duration usually of at least 2 years)  
 
-below there is a simple plot of the GDP time series
+Below there is a time series plot of the Eurozone countries quarterly GDP since 1995.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 # Simple time series plot
 autoplot(gdp_ts, facets = TRUE)+
-  labs(title = "Quarterly GDP for EU 19 with lowess trend",
+  labs(title = "Quarterly GDP for Eurozone countries",
+       subtitle = "with loess curve fitted",
        y = "Quarterly GDP (€)",
        x = "year") +
-  geom_smooth(method = "loess")+
-  theme_fivethirtyeight()
-
+  geom_smooth(method = "loess") +
+  scale_x_continuous(breaks = seq(1995, 2018, 1)) +
+  theme_fivethirtyeight() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
 
-* In general we can say there a positive trend
-* There is seasonality 
-* No cyclicity 
+There are a few outputs from the time series plot above:   
+- We can say that there is an overall positive trend  
+- There is no obvious increased/decreased variability in the trend
+- It looks that there is some seasonality, but needs further investigation
+- There is no cyclicity  
+- There is a major disruption in GDP growth around years 2008-2009
 
 
-Below there is a seasonal plot ....
-fdafafafafafafafafafafafafa
-afafafsafafafasffafafafafaffaf
-
+To investigate seasonality, a seasonal plot is used below. 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 ## Seasonal plot
 ggseasonplot(gdp_ts) +
-  labs(title = "Seasonal GDP plot for EU19",
+  labs(title = "Seasonal GDP plot for Eurozone countries",
        y = "GDP (€)")+
   theme_fivethirtyeight()
 ```
 
-* We can confirm that there is a seasonality. It seems that 4th quarter is always 
-the higher, while the 1st is always the lowest. The 2nd & 3rd are about the same. 
+We are more confident now for the seasonality in the time series. It seems that 
+4th quarter is always the higher, while the 1st is always the lowest. The 2nd & 
+3rd are about the same. 
 
-Below there is the lag plot. 
-- A few words about lags 
-ddddddddddddd
-ddddddddddddddddd
 
+A lag plot would help us understand if there is autocorellation in the time series.
+It is a scatterplot between the time series and the lagged values of the time series. 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 ## Lag plot of time series
 gglagplot(gdp_ts)+
+  ggtitle("Lag plot of quarterly GDP for Eurozone countries") +
   theme_fivethirtyeight()
 ```
 
-* strongest lag 4  (1 year). There is a mild at lag 8 
+There is a strong seasonality at lag 4 (1 year).
 
-in the autocorellation plot below .......
+Below there is an autocorellation function plot. It will indicate us if there 
+are significant autocorellations
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # Autocorellation plot
 ggAcf(gdp_ts)+
+  ggtitle("Autocorellation function plot") +
   theme_fivethirtyeight()
 ```
 
-* Explain the autocorellation plot
+It looks that there are significant autocorellations at all lags, which indicates 
+trend and/or seasonality in the time series. 
 
-Below there is a difference plot. 
-And a 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
-# Difference plot
-autoplot(diff(gdp_ts))+
-  theme_fivethirtyeight()
-
-# ACF of difference plot
-ggAcf(diff(gdp_ts))+
-  theme_fivethirtyeight()
-```
-
-* Explain the plot .......
-
-Ljung-Box ............
+We can also use Ljung-Box test to test if the time series is white noise. Below 
+there is a test at lag 4.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # Ljung-Box test
-Box.test(diff(gdp_ts), lag = 4, type = "Ljung")
-Box.test(diff(gdp_ts), lag = 1, type = "Ljung")
+Box.test(gdp_ts, lag = 4, type = "Ljung")
 
 ```
 
-* All Ljung-Box tests have very small p-values, so there is strong evidence to 
+Ljung-Box test have very small p-value, so there is strong evidence to 
 reject null hypothesis, that the time-series is not white noise. It definetely 
-has seasonality..
+has seasonality and/or trend
 
 
 # Modelling
 
-There are various ways to model our data... 
-ARIMA is a ...... 
-
+ARIMA (Auto-regressive integrated moving average) models provide one of the main
+approaches to time series forecasting. It is the most widely-used approach to 
+time series forecasting, and aim to describe the autocorrelations in the data.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
-# Create the trainin set
+# Create the training set
 train1 <- window(gdp_ts, end = c(2016, 4))
 
-# Fit a seasonal ARIMA model with lambda = 0 - box cox transformation
+# Fit a seasonal ARIMA model with lambda = 0 - box cox transformation 
 fit <- auto.arima(train1, lambda = 0)
-
-# Summarize the fitted model
-summary(fit)
 
 ```
 
-Below there are some plots about the residuals from the model. 
+
+After fitting the ARIMA model, it is important to check that the residuals are 
+well-behaved (i.e., no outliers or patterns) and resemble white noise. Below there
+are some plots for the residuals. 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # Plot residuals 
@@ -201,9 +193,11 @@ checkresiduals(fit)
 
 ```
 
-* Explain the residuals.....
+We can say that the model is fairly good, since the residuals are closely normally 
+distributed, have no real pattern and autocorellations are not significant. 
 
-Now, the ultimate test for any prediction model is the accuracy. below 
+Finally, the most important test for any prediction model is the accuracy. Below 
+there is a test for the model accuracy, using the 2017 quarters & the 1st quarter of 2018.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # Test accuracy
@@ -211,19 +205,26 @@ accuracy(forecast(fit, h = 4), gdp_ts)
 
 ```
 
-* RMSE ........................
-* MAPE is ........................................
+MAPE (Mean absolute percentage error) for the test set is 1.4, so we can say that the prediction 
+accuracy of the model is around **98.6 %**.  
 
+Below there is a plot of the GDP forecasts for 2018-19. 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# Fit a seasonal ARIMA model with lambda = 0 - box cox transformation for all data
+fit <- auto.arima(gdp_ts, lambda = 0)
 
 # Plot forecasts
 fit %>% 
-  forecast(h = 4) %>% 
+  forecast(h = 8) %>% 
   autoplot() +
-  labs(title = "Forecasting of GDP",
+  labs(title = "Forecasting of Eurozone countries quarterly GDP",
+       subtitle = "for years 2018-19",
        y = "GDP (€)")+
-  theme_fivethirtyeight()
+  scale_x_continuous(breaks = seq(1995, 2020, 1)) +
+  theme_fivethirtyeight() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
 
 ```
 
